@@ -20,7 +20,7 @@ class ImageFolderWithPaths(datasets.ImageFolder):
         tuple_with_path = (original_tuple + (path,))
         return tuple_with_path
 
-PATH = '/home/ubuntu/model_test_3.pth'
+PATH = '/home/ubuntu/Flask_Model_WebService/model_test_3.pth'
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 net = torch.hub.load('pytorch/vision:v0.5.0', 'inception_v3', pretrained=False, aux_logits=False)
@@ -29,7 +29,7 @@ if torch.cuda.device_count() > 1:
   # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
   # net = nn.DataParallel(net)
 net.to(device)
-net.load_state_dict(torch.load(PATH))
+net.load_state_dict(torch.load(PATH, map_location=torch.device('cpu')))
 net.eval()
 
 @app.route('/')
@@ -37,15 +37,39 @@ net.eval()
 def index():
     return "Hello, Wooorld!"
 
-@app.route('/API/test.csv', methods=['GET'])
+@app.route('/API/test2.csv', methods=['GET'])
 def get_csv():
     # Parameters and DataLoaders
     batch_size = 1
-    testset = datasets.ImageFolderWithPaths(root='/home/ubuntu/test_img_100', transform=transforms.Compose([
+    testset = ImageFolderWithPaths(root='/home/ubuntu/Flask_Model_WebService/test_img_100', transform=transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ]))
-    testset.idx_to_class = {v: k for k, v in testset.class_to_idx.items()}
+    idx_class = {0: 'aceite',
+ 1: 'agua',
+ 2: 'arroz',
+ 3: 'azucar',
+ 4: 'cafe',
+ 5: 'caramelo',
+ 6: 'cereal',
+ 7: 'chips',
+ 8: 'chocolate',
+ 9: 'especias',
+ 10: 'frijoles',
+ 11: 'gaseosa',
+ 12: 'harina',
+ 13: 'jamon',
+ 14: 'jugo',
+ 15: 'leche',
+ 16: 'maiz',
+ 17: 'miel',
+ 18: 'nueces',
+ 19: 'pasta',
+ 20: 'pescado',
+ 21: 'salsatomate',
+ 22: 'te',
+ 23: 'torta',
+ 24: 'vinagre'}
 
     testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
                                               shuffle=True, num_workers=2)
@@ -58,17 +82,18 @@ def get_csv():
             images, names = data[0].to(device), data[2]
             outputs = net(images)
             _, predicted = torch.max(outputs.data, 1)
-            imagenes_clasificadas['image_id'].item().append(names)
-            imagenes_clasificadas['label'].item().append(predicted.item())
+            imagenes_clasificadas['image_id'].append(names[0][54:])
+            imagenes_clasificadas['label'].append(idx_class[predicted.item()])
 
 
     df = pd.DataFrame(imagenes_clasificadas,columns=['image_id','label'])
-    df.to_csv(r'/home/ubuntu/test.csv')
+    df = df.sort_values(by=['image_id'])
+    df.to_csv(r'/home/ubuntu/Flask_Model_WebService/test2.csv', index = False)
     try:
-        return send_file('/home/ubuntu/test.csv', attachment_filename='test.csv')
+        return send_file('/home/ubuntu/Flask_Model_WebService/test2.csv', attachment_filename='test2.csv')
     except Exception as e:
         return str(e)
 
 if __name__ == '__main__':
-    app.run(debug=True)
-    
+    app.run()
+
