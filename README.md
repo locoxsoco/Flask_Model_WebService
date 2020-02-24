@@ -16,7 +16,9 @@ Tener activado el entorno anaconda activado
 $ jupyter notebook
 ```
 1.2 Ejecutar el archivo ./Preprocesamiento/PreprocessingImages.ipynb para analizar las imágenes y tomar decisiones con respecto a qué técnicas usar para el pre-procesamiento de imágenes.
+
 1.3 Ejecutar el archivo ./Preprocesamiento/SplitTrainAndTest.ipynb para dividir la data en entrenamiento y pruebas para su posterior validación en la fase de entrenamiento
+
 1.4 Ejecutar el archivo ./Preprocesamiento/SortingDatabaseInFolders.ipynb para dar formato a las imágenes y así, durante el entrenamiento, pasarlas a clasificar mediante la clase ImageFolder
 
 #### 2. Entrenamiento:
